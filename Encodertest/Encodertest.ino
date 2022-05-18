@@ -1,18 +1,17 @@
-
 volatile long int  encoder_pos1;
 
-volatile long  pos = 0;
-
-
-#define ENA 4
-#define IN2 23
-#define IN1 22
-int dir = 1 ;
+#define ENA 5
+#define IN2 27 //4
+#define IN1 26 //3
+#define ENCA 2
+#define ENCB 3
+#define Switch1 28
+#define Switch2 29
 
 void setup() {
-  
-  pinMode(2, INPUT);    //1EncoderMotor2 *A-pin2 *B-pin3
-  pinMode(3, INPUT);
+
+  pinMode(ENCA, INPUT);    //1EncoderMotor2 *A-pin2 *B-pin3
+  pinMode(ENCB, INPUT);
   attachInterrupt(digitalPinToInterrupt(2), encoder1, RISING);
 
   ///////////////////////////////////////////////
@@ -21,24 +20,42 @@ void setup() {
   pinMode(ENA, OUTPUT);
   pinMode(IN1, OUTPUT);
   pinMode(IN2, OUTPUT);
+  pinMode(Switch1, INPUT_PULLUP);
+  pinMode(Switch2, INPUT_PULLUP);
   Serial.begin (9600);
   Serial.println("start");
 }
 
 void loop() {
-  int Enaspeed = 50;
+  int Enaspeed = 100;
+  int dir=0;
+  int timimg;
+  int a;
   setMotor(dir, Enaspeed, ENA, IN1, IN2);
 
-  Serial.print("En1 -- Value: "); Serial.println(encoder_pos1);
-  if(encoder_pos1 >= 500){
-    dir = 0;
-  }
+   if(digitalRead(Switch1) == HIGH){
+    dir=-1; setMotor(dir, Enaspeed, ENA, IN1, IN2);
+    while(encoder_pos1<=700) Serial.println(encoder_pos1); dir=0; setMotor(dir, Enaspeed, ENA, IN1, IN2); encoder_pos1=0;
+    }
+   else if(digitalRead(Switch2)==HIGH){
+    dir=1; setMotor(dir, Enaspeed, ENA, IN1, IN2);
+    while(encoder_pos1>=-700) Serial.println(encoder_pos1); dir=0; setMotor(dir, Enaspeed, ENA, IN1, IN2); encoder_pos1=0;
+
+    }
+    else{
+      dir=0; setMotor(dir, Enaspeed, ENA, IN1, IN2);
+   }
+
+
+  
+
+  
 
 
 }
 
 
- void setMotor(int dir, int enaspeed, int ena, int in1, int in2) {
+void setMotor(int dir, int enaspeed, int ena, int in1, int in2) {
   analogWrite(ena, enaspeed);
   if (dir == 1) {
     digitalWrite(in1, HIGH);
@@ -48,11 +65,11 @@ void loop() {
     digitalWrite(in1, LOW);
     digitalWrite(in2, HIGH);
   }
-    else {
-      digitalWrite(in1, LOW);
-      digitalWrite(in2, LOW);
-    }
-} 
+  else {
+    digitalWrite(in1, LOW);
+    digitalWrite(in2, LOW);
+  }
+}
 
 
 
@@ -62,4 +79,5 @@ void encoder1() {
   } else {
     encoder_pos1--;
   }
+  
 }
